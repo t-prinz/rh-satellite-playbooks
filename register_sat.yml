@@ -1,0 +1,56 @@
+---
+- name: Register system with Satellite
+  hosts: "{{ vm_fq_hostname | default('NO_HOSTS') }}"
+  remote_user: root
+  vars:
+    sat_server: sat.example.com
+    sat_organization: "Aero"
+    sat_activation_key: "Development-RHEL-7server-JWS-AK"
+
+  tasks:
+    - name: Ensure chronyd is enabled and started
+      service:
+        name: chronyd
+        enabled: True
+        state: started
+
+    - name: Ensure rhsmcertd is enabled and started
+      service:
+        name: rhsmcertd
+        enabled: True
+        state: started
+
+    - name: Check if consumer RPM is installed
+      command: "rpm -qa"
+      register: katello_check
+      args:
+        warn: false
+
+    - name: Ensure consumer RPM is installed
+      command: 'rpm -Uvh http://"{{ sat_server }}"/pub/katello-ca-consumer-latest.noarch.rpm'
+      when: "'katello-ca-consumer' not in katello_check.stdout"
+      args:
+        warn: false
+
+    - name: Clear out old subscription data
+      command: "subscription-manager clean"
+
+    - name: Ensure system is subscribed
+      redhat_subscription:
+        state: present
+        activationkey: "{{ sat_activation_key }}"
+        org_id: "{{ sat_organization }}"
+
+    - name: Ensure repositories are enabled (bug workaround)
+      command: "subscription-manager repos --enable=jb-coreservices-1-for-rhel-7-server-rpms --enable=rhel-7-server-satellite-tools-6.5-rpms --enable=jws-5-for-rhel-7-server-rpms"
+
+    - name: Ensure katello-agent is installed
+      package:
+        name: katello-agent
+        state: present
+
+    - name: Ensure goferd is enabled and started
+      service:
+        name: goferd
+        enabled: True
+        state: started

@@ -1,0 +1,50 @@
+---
+- name: Query Satellite server for information to prepare external DHCP and DNS servers
+  hosts: satellite
+  remote_user: root
+
+  tasks:
+    - name: Ensure BIND utility software is installed
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - bind-utils
+
+    - name: Get foreman group id
+      command: id -g foreman
+      register: foreman_gid
+
+    - name: Get foreman user id
+      command: "id -u foreman"
+      register: foreman_uid
+
+#    TODO
+#    - name: Copy the key that allows Satellite to make DNS updates
+#      copy:
+#        dest: /etc/rndc-dns-update-key.key
+#        group: named
+#        mode: 0640
+#        owner: root
+
+- name: Prepare external DHCP and DNS servers to be used with Satellie
+  hosts: netsvc
+  remote_user: root
+
+  tasks:
+    - name: Ensure foreman group is created
+      group:
+        gid: "{{ hostvars['sat.example.com']['foreman_gid']['stdout'] }}"
+        name: foreman
+        state: present
+
+    - name: Ensure foreman user is created
+      user:
+        create_home: no
+        group: foreman
+        name: foreman
+        password: "*"
+        password_lock: True
+        shell: /sbin/nologin
+        state: present
+        uid: "{{ hostvars['sat.example.com']['foreman_uid']['stdout'] }}"
