@@ -8,3 +8,21 @@
     - name: Ensure system is unregistered
       redhat_subscription:
         state: absent
+
+- name: Delete system from Satellite
+  hosts: sat.example.com
+  remote_user: root
+
+  tasks:
+
+    - name: Get host information
+      shell: hammer --csv host list --search="{{ vm_fq_hostname }}" | grep -vi '^ID' | awk -F, {'print $1'}
+      register: host_info
+
+    - name: Print host ID
+      debug:
+        var: host_info.stdout
+
+    - name: Delete the host from Satellite
+      shell: hammer host delete --id "{{ host_info.stdout }}"
+      when: host_info.stdout
