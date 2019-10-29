@@ -1,20 +1,10 @@
 ---
-- name: Un-register system with Satellite
+- name: Un-register system from Satellite
   hosts: "{{ vm_fq_hostname | default('NO_HOSTS') }}"
   remote_user: root
-  vars:
-    rhv_vm_name: "anstest-at"
 
   tasks:
-    - name: Define the FQDN
-      set_fact:
-        cloud_init_host_name: "{{ rhv_vm_name }}.aeronet.io"
-
-    - name: Print
-      debug:
-        var: ansible_hostname
 
     - name: Ensure system is unregistered
       redhat_subscription:
         state: absent
-      when: ansible_hostname == rhv_vm_name
