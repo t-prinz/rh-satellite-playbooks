@@ -41,8 +41,8 @@
         activationkey: "{{ sat_activation_key }}"
         org_id: "{{ sat_organization }}"
 
-    - name: Ensure repositories are enabled (bug workaround)
-      command: "subscription-manager repos --enable=jb-coreservices-1-for-rhel-7-server-rpms --enable=rhel-7-server-satellite-tools-6.5-rpms --enable=jws-5-for-rhel-7-server-rpms"
+#    - name: Ensure repositories are enabled (bug workaround)
+#      command: "subscription-manager repos --enable=jb-coreservices-1-for-rhel-7-server-rpms --enable=rhel-7-server-satellite-tools-6.5-rpms --enable=jws-5-for-rhel-7-server-rpms"
 
     - name: Ensure katello-agent is installed
       package:
