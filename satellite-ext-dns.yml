@@ -1,0 +1,28 @@
+---
+- name: Query Satellite server for information to prepare external DHCP and DNS servers
+  hosts: satellite
+  remote_user: root
+
+  tasks:
+    - name: Ensure BIND utility software is installed
+      package:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - bind-utils
+
+# TODO:  Copy the key file from the DNS server to the Satellite server
+# ls /etc/rndc.key -Zla
+# -rw-r-----. root named system_u:object_r:dnssec_t:s0    /etc/rndc.key
+#
+# # restorecon -v /etc/rndc.key
+# # chown -v root:named /etc/rndc.key
+# # chmod -v 640 /etc/rndc.key
+
+    - name: Run the katello installer
+      command: satellite-installer --scenario satellite --foreman-proxy-dns=true --foreman-proxy-dns-managed=false --foreman-proxy-dns-provider=nsupdate --foreman-proxy-dns-server="192.168.0.1" --foreman-proxy-keyfile=/etc/aeronet.io.key --foreman-proxy-dns-ttl=86400
+
+    - name: Restart foreman-proxy service
+      service:
+        name: foreman-proxy
+        state: restarted

@@ -19,14 +19,6 @@
       command: "id -u foreman"
       register: foreman_uid
 
-#    TODO
-#    - name: Copy the key that allows Satellite to make DNS updates
-#      copy:
-#        dest: /etc/rndc-dns-update-key.key
-#        group: named
-#        mode: 0640
-#        owner: root
-
 - name: Prepare external DHCP and DNS servers to be used with Satellie
   hosts: netsvc
   remote_user: root
